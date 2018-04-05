@@ -20,7 +20,7 @@ uluru_bbox_mpoly <-
     st_multipolygon() %>%
     st_geometry()
 
-st_crs(uluru_bbox_mpoly) <- st_crs(uluru_bbox_poly)
+st_crs(uluru_bbox_mpoly) <- st_crs(uluru_bbox)
 
 ### Read in raster
 nt_raster <- raster("./data/ELVIS_CLIP.tif")
