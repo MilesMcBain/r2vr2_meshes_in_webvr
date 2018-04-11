@@ -18,20 +18,3 @@ wire3d(
   )
 )
 rglwidget()
-
-
-### load template
-threejs_json_template <-
-  read_lines("./helpers/threejs_json_template.txt") %>%
-  paste0(collapse = "\n")
-
-threejs_json_data <-
-  new.env()
-
-threejs_json_data$vertices <-
-  uluru_mesh$P %>%
-  as_data_frame() %>%
-  transpose() %>%
-  map( ~paste0(., collapse = ',')) %>%
-  paste0( ., collapse = ', ') %>% head() 
-
