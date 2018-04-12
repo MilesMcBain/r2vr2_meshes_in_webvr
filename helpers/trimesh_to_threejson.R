@@ -1,6 +1,19 @@
-trimesh_to_threejson <- function(vertices, faces,
-                                 colours, vertex_colours,
-                                 normals, vertex_normals) {
+##' Generate threejs model JSON from a triangular mesh.
+##'
+##' The format of threejs model JSON is described here: https://github.com/mrdoob/three.js/wiki/JSON-Model-format-3
+##' In this format each face is described by lists of indicies into lists of vertices, colours and normals. Colours, normals and vertices can be re-used or shared among faces so there are no length requirements on `vertices`, `colours`, or `normals`. All the `face_` arguments must have the same length or be not supplied.
+##' @title trimesh_to_threejson
+##' @param vertices a matrix of vertices with 3 columns corresponding to: x, y, z.
+##' @param face_vertices a matrix with 3 columns of faces as defined by their vertices. column 1 is the row index of a vertex in `vertices`, column 2 is a second row index in of a vertex, and so on for column 3, making up three vertices of a triangular face.
+##' @param colours a character vector of colours of form: '0x7cccba' (hex)
+##' @param face_vertex_colours a matrix with 3 columns of face vertex colour indicies in `colours`, each row corresponds to a face in `face_vertices`. Row 1, column 1 is the colour index of vertex 1 in face 1.
+##' @param normals a 3 column matrix of normal vectors in x, y, z space.
+##' @param face_vertex_normals a matrix with 3 columns of face vertex normal indicies in `normals`, each row corresponds to a face in `face_vertices`. Row 1, column 1 is the normal index of vertex 1 in face 1.
+##' @return JSON describing the mesh.
+##' @author Miles McBain
+trimesh_to_threejson <- function(vertices, face_vertices,
+                                 colours, face_vertex_colours,
+                                 normals, face_vertex_normals) {
 
  ## format from: https://github.com/mrdoob/three.js/wiki/JSON-Model-format-3
  json_template <- '{
@@ -26,6 +39,9 @@ trimesh_to_threejson <- function(vertices, faces,
     "faces": [
       ${faces}
       ]}'
+
+  ## we are just using a single material
+  material_ind <- 0
 
   ## calculate face definition byte
   face_def <-
@@ -69,7 +85,43 @@ trimesh_to_threejson <- function(vertices, faces,
     }
   }
 
-  ## bind cols of faces, vertex_colours, and vertex_normals
-  ## work by row pasting a face definition
+
+  ## check supplied pieces conform to expectations
+  if (!is.matrix(face_vertices) | (ncol(face_vertices != 3) | )){
+    stop("face_vertices is not a 3 column matrix")
+  }
+
+  if (!missing(face_vertex_colours) &
+      (!is.matrix(face_vertex_colours) | (nrow(face_vertex_colours) != nrow(face_vertices)))
+      ){
+    stop("face_vertex_colours is not a 3 column matrix of same length as face_vertices.")
+  }
+
+  if (!missing(face_vertex_normals) &
+      (!is.matrix(face_vertex_normals) | (nrow(face_vertex_normals) != nrow(face_vertices)))
+      ){
+    stop("face_vertex_normals is not a 3 column matrix of same length as face_vertices.")
+  }
+
+  ## Build up each face by pasting together the parts that were supplied. Taking advantage
+  ## of vectorised paste0()
+  faces <-
+    paste(face_def, " ,", face_verticies[1], ",", face_vertices[2], ",", face_vertices[3],
+          material_ind)
+
+  if(!missing(face_vertex_normals)){
+    faces <-
+      paste0(faces, ", ", face_vertex_normals[1], "," , face_vertex_normals[2], ",",
+             face_vertex_normals[3])
+  }
+
+  if(!missing(face_vertex_colours)){
+    faces <-
+      paste0(faces, ", ", face_vertex_colours[1], ",", face_verex_colours[2], ",",
+             face_vertex_colours[3])
+  }
+
+  ## create one flat list
+  threejs_json_data$faces <- paste0(faces, collapse = ", ")
 
 }
