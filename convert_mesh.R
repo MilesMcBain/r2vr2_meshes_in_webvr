@@ -40,6 +40,21 @@ uluru_mesh$P[,2] <- scale(uluru_mesh$P[,2], center = TRUE, scale = FALSE)
 ## transform:
 uluru_mesh$T <- uluru_mesh$T-1
 
+## Correct height
+min(uluru_mesh$P[, 3])
+## The base of Uluru is at height 508.0239 we would like that to sit at 0
+uluru_mesh$P[, 3] <- uluru_mesh$P[, 3] - min(uluru_mesh$P[,3])
+
+
+## flip z and y vertex coordinates
+## A-Frame and threejs have a convention where the basis vector for the third spatial
+## dimension points toward the 'camera'. If we don't flip the y and z vertices
+## uluru will be tipped up on it's edge!
+uluru_mesh$P <- uluru_mesh$P[, c(1,3,2)]
+summary(uluru_mesh$P)
+## TODO: fix this, it changes the way the triangles wind, putting the front side 'inside'
+## Can fix with 2-sided material but feels like a hack.
+
 ### write to JSON
 mesh_json <- trimesh_to_threejson(vertices = uluru_mesh$P, face_vertices = uluru_mesh$T)
 write_lines(mesh_json, "./data/uluru_mesh.json")
