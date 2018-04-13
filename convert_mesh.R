@@ -1,9 +1,12 @@
 library(sf)
 library(raster)
 library(tidyverse)
+library(purrr)
 library(rgl)
-source("./helpers/sf_to_trimesh.R")
- 
+
+### pull in all helper functions
+walk(list.files("./helpers", full.names = TRUE), source)
+
 ### read mesh
 uluru_mesh <-
   read_rds("./data/uluru_mesh_12000.rds")
@@ -18,3 +21,8 @@ wire3d(
   )
 )
 rglwidget()
+
+### prepare mesh for JSON conversion
+mesh_json <- trimesh_to_threejson(vertices = uluru_mesh$P, face_vertices = uluru_mesh$T)
+
+write_lines(mesh_json, "./data/uluru_mesh.json")

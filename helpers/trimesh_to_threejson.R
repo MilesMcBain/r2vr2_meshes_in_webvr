@@ -47,14 +47,14 @@ trimesh_to_threejson <- function(vertices, face_vertices,
   face_def <-
     0 +                                   # use triangular faces
     2^1 +                                 # use material for face
-    (!missing(vertex_colours) * 2^7) +    # use face vertex colours
-    (!misssing(vertex_normals) * 2^5)     # use face vertex normals
+    (!missing(face_vertex_colours) * 2^7) +    # use face vertex colours
+    (!missing(face_vertex_normals) * 2^5)     # use face vertex normals
 
   threejs_json_data <-
     new.env()
 
   ## vertices
-  if (!is.matrix(vertices) | (ncol(vertices != 3))){
+  if (!is.matrix(vertices) || (ncol(vertices) != 3)){
     stop("vertices is not a 3 column matrix")
   }
   threejs_json_data$vertices <-
@@ -71,7 +71,7 @@ trimesh_to_threejson <- function(vertices, face_vertices,
   if (!is.character(colours)){
     stop("colours is not a character vector")
   }
-  threejs_json_data$colours <-
+  threejs_json_data$colors <-
     colours %>%
     paste0(., collapse=", ")
 
@@ -80,25 +80,37 @@ trimesh_to_threejson <- function(vertices, face_vertices,
     normals <- ""
   }
   else {
-    if (!is.matrix(normals) | ncol(normals != ) ){
+    if (!is.matrix(normals) || ncol(normals) != 3) {
       stop("normals is not a 3 column matrix")
     }
+
+    ## format normals
+    normals <-
+      paste0(
+        paste0(normals[1], ",", normals[2], ",", normals[3]),
+        collapse = ", "
+      )
   }
 
+  threejs_json_data$normals <- normals
+
+  ## uvs
+  ## No support for textures and texture coordinates for now.
+  threejs_json_data$uvs <- ""
 
   ## check supplied pieces conform to expectations
-  if (!is.matrix(face_vertices) | (ncol(face_vertices != 3) | )){
+  if (!is.matrix(face_vertices) || (ncol(face_vertices) != 3) ){
     stop("face_vertices is not a 3 column matrix")
   }
 
-  if (!missing(face_vertex_colours) &
-      (!is.matrix(face_vertex_colours) | (nrow(face_vertex_colours) != nrow(face_vertices)))
+  if (!missing(face_vertex_colours) &&
+      (!is.matrix(face_vertex_colours) || (nrow(face_vertex_colours) != nrow(face_vertices)))
       ){
     stop("face_vertex_colours is not a 3 column matrix of same length as face_vertices.")
   }
 
-  if (!missing(face_vertex_normals) &
-      (!is.matrix(face_vertex_normals) | (nrow(face_vertex_normals) != nrow(face_vertices)))
+  if (!missing(face_vertex_normals) &&
+      (!is.matrix(face_vertex_normals) || (nrow(face_vertex_normals) != nrow(face_vertices)))
       ){
     stop("face_vertex_normals is not a 3 column matrix of same length as face_vertices.")
   }
@@ -106,22 +118,24 @@ trimesh_to_threejson <- function(vertices, face_vertices,
   ## Build up each face by pasting together the parts that were supplied. Taking advantage
   ## of vectorised paste0()
   faces <-
-    paste(face_def, " ,", face_verticies[1], ",", face_vertices[2], ",", face_vertices[3],
-          material_ind)
+    paste0(face_def, ", ", face_vertices[, 1], ",", face_vertices[, 2], ",",
+           face_vertices[, 3], ", ", material_ind)
 
   if(!missing(face_vertex_normals)){
     faces <-
-      paste0(faces, ", ", face_vertex_normals[1], "," , face_vertex_normals[2], ",",
-             face_vertex_normals[3])
+      paste0(faces, ", ", face_vertex_normals[, 1], "," , face_vertex_normals[, 2], ",",
+             face_vertex_normals[, 3])
   }
 
   if(!missing(face_vertex_colours)){
     faces <-
-      paste0(faces, ", ", face_vertex_colours[1], ",", face_verex_colours[2], ",",
-             face_vertex_colours[3])
+      paste0(faces, ", ", face_vertex_colours[, 1], ",", face_verex_colours[, 2], ",",
+             face_vertex_colours[, 3])
   }
 
   ## create one flat list
   threejs_json_data$faces <- paste0(faces, collapse = ", ")
 
+  ## interpolate the JSON string template
+  stringr::str_interp(string = json_template, threejs_json_data)
 }
