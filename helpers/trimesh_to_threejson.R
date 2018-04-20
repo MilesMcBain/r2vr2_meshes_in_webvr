@@ -57,6 +57,30 @@ trimesh_to_threejson <- function(vertices, face_vertices,
   if (!is.matrix(vertices) || (ncol(vertices) != 3)){
     stop("vertices is not a 3 column matrix")
   }
+
+  ## face - vertex mapping
+  ## check supplied pieces conform to expectations
+  if (!is.matrix(face_vertices) || (ncol(face_vertices) != 3) ){
+    stop("face_vertices is not a 3 column matrix")
+  }
+
+  ## threejs/VR specific transformations
+  ## start face_vertices indicies from 0
+  ## Our face_vertices is set up to index vertices. In R the indicies start
+  ## from 1, but in the threejs JSON they need to start from 0. It's a simple
+  ## transform:
+  face_vertices <- face_vertices - 1
+
+  ## centre model coordinates
+  ## We would like to have a model scale in metres so to match that of VR.
+  ## I might be practical to scale the model size when rendering, but at least
+  ## if the scale start the same, we will know the scaling factor.
+  ## Since the 'metres' we have come from a position on the globe, they can be
+  ## quite large in magnitude. This causes vertices to render very far away
+  ## from the camera, usually positioned close to 0,0,0.
+  vertices <- scale(vertices, center = TRUE, scale = FALSE)
+
+  ## create vertex list
   threejs_json_data$vertices <-
     vertices %>%
     as_data_frame() %>%
@@ -98,10 +122,6 @@ trimesh_to_threejson <- function(vertices, face_vertices,
   ## No support for textures and texture coordinates for now.
   threejs_json_data$uvs <- ""
 
-  ## check supplied pieces conform to expectations
-  if (!is.matrix(face_vertices) || (ncol(face_vertices) != 3) ){
-    stop("face_vertices is not a 3 column matrix")
-  }
 
   if (!missing(face_vertex_colours) &&
       (!is.matrix(face_vertex_colours) || (nrow(face_vertex_colours) != nrow(face_vertices)))
@@ -115,6 +135,7 @@ trimesh_to_threejson <- function(vertices, face_vertices,
     stop("face_vertex_normals is not a 3 column matrix of same length as face_vertices.")
   }
 
+  ## faces
   ## Build up each face by pasting together the parts that were supplied. Taking advantage
   ## of vectorised paste0()
   faces <-
