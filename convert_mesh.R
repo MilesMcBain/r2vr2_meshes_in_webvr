@@ -81,7 +81,7 @@ source("./helpers/trimesh_to_threejson.R")
 ## After prerequisite code, our mesh is now in uluru_bbox_trimesh.
 
 ## write to JSON
-mesh_json <- trimesh_to_threejson(vertices = uluru_mesh$P, face_vertices = uluru_mesh$T)
+mesh_json <- trimesh_to_threejson(vertices = uluru_bbox_trimesh$P, face_vertices = uluru_bbox_trimesh$T)
 write_lines(mesh_json, "./data/uluru_mesh.json")
 
 ## render in A-Frame
@@ -89,10 +89,16 @@ aframe_scene <-
   a_scene(template = "empty",
           title = "Uluru Mesh",
           description = "An A-Frame scene of Uluru",
-          chilren = list(a_json_model())
+          children = list(
+            a_json_model(src = a_asset(id = "uluru",
+                                       src = "./data/uluru_mesh.json"),
+                         scale = 0.001*c(1,1,1),
+                         material = list(color = 'blue'),
+                         possition = c(0,0,-3))))
 
-          )
-
+aframe_scene$render()
+aframe_scene$serve()
+aframe_scene$stop()
 
 ## rendering in a frame
 ## Uluru will initially be rendered at a strange viewpoint and height.
