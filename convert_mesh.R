@@ -85,36 +85,58 @@ mesh_json <- trimesh_to_threejson(vertices = uluru_bbox_trimesh$P, face_vertices
 write_lines(mesh_json, "./data/uluru_mesh.json")
 
 ## render in A-Frame
+## use a 1/1000 scale factor because Uluru is really big! 
+scale_factor <- 0.001
+
 aframe_scene <-
-  a_scene(template = "empty",
+  a_scene(template = "basic",
           title = "Uluru Mesh",
           description = "An A-Frame scene of Uluru",
           children = list(
-            a_json_model(src = a_asset(id = "uluru",
+            a_json_model(src_asset = a_asset(id = "uluru",
                                        src = "./data/uluru_mesh.json"),
-                         scale = 0.001*c(1,1,1),
-                         material = list(color = 'blue'),
-                         possition = c(0,0,-3))))
+                         material = list(color = '#C88A77'),
+                         scale = scale_factor*c(1,1,1),
+                         position = c(0,0,-3),
+                         rotation = c(0, 0, 0))))
 
 aframe_scene$render()
 aframe_scene$serve()
+
+## don't forget to:
 aframe_scene$stop()
 
-## rendering in a frame
-## Uluru will initially be rendered at a strange viewpoint and height.
-height_correction <- -1 * (min(uluru_mesh$P[,3]) - mean(uluru_mesh$P[,3]))
-
-## still a bit off because of the lowest point dips slightly below the
-## surrounding ground. Correct based on ground height.
-## find ground height from the edge? 
+## We need to correct the height based on ground height.
+## In this case we'll find ground height from the  highest corner of the bounding box.
 ground_height <- 
  max(raster::extract(nt_raster, uluru_bbox_mpoly[[1]][[1]][[1]], nrow = 1))
 
-height_correction <- -1 * (ground_height - mean(uluru_mesh$P[,3]))
-## This is pretty close to correct. The ground is not perfectly flat. It's slightly tilted.
+height_correction <- -1 * (ground_height - mean(uluru_bbox_trimesh$P[,3]))
+## We're reversing the correction that would have been applied to the
+## ground height by centering.
 
-## Viewing from R
-## TODO setup minimal R2VR package
+## Rotated and height corrected render:
+
+scale_factor <- 0.001
+
+aframe_scene2 <-
+  a_scene(template = "basic",
+          title = "Uluru Mesh",
+          description = "An A-Frame scene of Uluru",
+          children = list(
+            a_json_model(src_asset = a_asset(id = "uluru",
+                                             src = "./data/uluru_mesh.json"),
+                         material = list(color = '#C88A77'),
+                         scale = scale_factor*c(1,1,1),
+                         position = c(0,0 + height_correction * scale_factor ,-3),
+                         rotation = c(-90, 180, 0))))
+
+aframe_scene2$render()
+aframe_scene2$serve()
+
+## don't forget to:
+aframe_scene2$stop()
+
 
 
 ## Vertex normals
