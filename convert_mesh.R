@@ -88,19 +88,19 @@ write_lines(mesh_json, "./data/uluru_mesh.json")
 ## use a 1/1000 scale factor because Uluru is really big! 
 scale_factor <- 0.001
 
+uluru <- a_asset(id = "uluru",
+                 src = "./data/uluru_mesh.json")
+
 aframe_scene <-
   a_scene(template = "basic",
           title = "Uluru Mesh",
           description = "An A-Frame scene of Uluru",
           children = list(
-            a_json_model(src_asset = a_asset(id = "uluru",
-                                       src = "./data/uluru_mesh.json"),
+            a_json_model(src_asset = uluru,
                          material = list(color = '#C88A77'),
                          scale = scale_factor*c(1,1,1),
                          position = c(0,0,-3),
                          rotation = c(0, 0, 0))))
-
-aframe_scene$render()
 aframe_scene$serve()
 
 ## don't forget to:
@@ -119,25 +119,20 @@ height_correction <- -1 * (ground_height - mean(uluru_bbox_trimesh$P[,3]))
 
 scale_factor <- 0.001
 
+uluru <- a_asset(id = "uluru",
+                 src = "./data/uluru_mesh.json")
+
 aframe_scene2 <-
   a_scene(template = "basic",
           title = "Uluru Mesh",
           description = "An A-Frame scene of Uluru",
           children = list(
-            a_json_model(src_asset = a_asset(id = "uluru",
-                                             src = "./data/uluru_mesh.json"),
+            a_json_model(src_asset = uluru,
                          material = list(color = '#C88A77'),
                          scale = scale_factor*c(1,1,1),
                          position = c(0,0 + height_correction * scale_factor ,-3),
                          rotation = c(-90, 180, 0))))
-
-aframe_scene2$render()
 aframe_scene2$serve()
 
 ## don't forget to:
 aframe_scene2$stop()
-
-
-
-## Vertex normals
-
