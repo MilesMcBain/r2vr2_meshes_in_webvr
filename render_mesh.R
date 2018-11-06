@@ -8,7 +8,6 @@ library(devtools)
 library(sf)
 library(raster)
 library(tidyverse)
-library(purrr)
 source("./helpers/sf_to_trimesh.R")
 
 ### Make a tight bounding box.
@@ -92,11 +91,11 @@ uluru <- a_asset(id = "uluru",
                  src = "./data/uluru_mesh.json")
 
 aframe_scene <-
-  a_scene(template = "basic",
-          title = "Uluru Mesh",
-          description = "An A-Frame scene of Uluru",
-          children = list(
-            a_json_model(src_asset = uluru,
+  a_scene(.template = "basic",
+          .title = "Uluru Mesh",
+          .description = "An A-Frame scene of Uluru",
+          .children = list(
+            a_json_model(src = uluru,
                          material = list(color = '#C88A77'),
                          scale = scale_factor*c(1,1,1),
                          position = c(0,0,-3),
@@ -123,11 +122,11 @@ uluru <- a_asset(id = "uluru",
                  src = "./data/uluru_mesh.json")
 
 aframe_scene2 <-
-  a_scene(template = "basic",
-          title = "Uluru Mesh",
-          description = "An A-Frame scene of Uluru",
-          children = list(
-            a_json_model(src_asset = uluru,
+  a_scene(.template = "basic",
+          .title = "Uluru Mesh",
+          .description = "An A-Frame scene of Uluru",
+          .children = list(
+            a_json_model(src = uluru,
                          material = list(color = '#C88A77'),
                          scale = scale_factor*c(1,1,1),
                          position = c(0,0 + height_correction * scale_factor ,-3),
